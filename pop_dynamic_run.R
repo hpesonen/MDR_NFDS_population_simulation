@@ -5,18 +5,12 @@ library(DirichletReg)
 run_simulation <- function(intervention_prob = 1,
                            repetitions = 1,
                            antibiotic_pressure = 0.006,
-			                     study = "NORM",
+                           study = "NORM",
                            generations = 120,
                            fa = 0,
                            m = 0.01,
                            sigma_f = 0.1,
                            v = 0,
-                           within_str_trans = 0.1 / 10000,
-                           between_str_trans = 0.1 / 10000,
-                           by_mutation = 0.001 / 10000,
-                           alpha = c(1,1),
-                           beta = c(10,10),
-                           transmissions = matrix(c(20,2,1), nrow=1, ncol=3),
                            seed1 = -99,
                            seed2 = -99){
 
@@ -141,9 +135,8 @@ run_simulation <- function(intervention_prob = 1,
         } else {
   
           state <- evolve_generation(state, dplyr::filter(interventions, generation == igeneration),
-                                     within_str_trans, between_str_trans,
-                                     by_mutation, e_pre, kappa, m, v, sigma_f,
-                                     loci_names, transmissions, igeneration, pop_names, genotype_names,
+                                     e_pre, kappa, m, v, sigma_f,
+                                     loci_names, igeneration, pop_names, genotype_names,
                                      migration_pressure, ab_pressure, state_stable, fa)
           summaries_list <- summarize_population(state, loci_names, pop_names, genotype_names, igeneration, irepetition, ab_pressure)
           summarized_state_genotype <- dplyr::bind_rows(summarized_state_genotype, summaries_list[[1]])
@@ -346,16 +339,12 @@ parse_strain_amr_file <- function(filename, strain_column_name, amr_column_name,
 
 evolve_generation <- function(state,
                               interventions,
-                              within_str_trans,
-                              between_str_trans,
-                              by_mutation,
                               e_pre,
                               kappa,
                               m,
                               v,
                               sigma_f,
                               IFloci,
-                              transmissions,
                               igeneration,
                               pop_names,
                               genotypes,
@@ -474,16 +463,28 @@ generate_interventions <- function(generations,
   return(interventions)
 }
 
-
-
 myargs <- commandArgs(trailingOnly=TRUE)
 
 sigma_f <- as.numeric(myargs[1])
-repetition <- myargs[2]
+repetition_id <- myargs[2]
 fa <- as.numeric(myargs[3])
 m <- as.numeric(myargs[4])
 ab_pressure = as.numeric(myargs[5])
 study = myargs[6]
-out <- run_simulation(antibiotic_pressure = ab_pressure, study = study, generations=200, repetitions=1, sigma_f=sigma_f, fa=fa, m=m)
+out <- run_simulation(antibiotic_pressure = ab_pressure,
+                      study = study,
+                      generations=200,
+                      repetitions=1,
+                      sigma_f=sigma_f,
+                      fa=fa,
+                      m=m)
 
-saveRDS(out, file=paste0("~/lancet_BSAC_NORM_3op/summarised_state_", sigma_f, "_", fa, "_", m, "_", repetition, "_", ab_pressure, "_", study, ".RData"))
+filename <- paste0("~/results/summarised_state_",
+                   sigma_f, "_",
+                   fa, "_",
+                   m, "_",
+                   repetition_id, "_",
+                   ab_pressure, "_",
+                   study, ".RData")
+
+saveRDS(out, file=filename)
