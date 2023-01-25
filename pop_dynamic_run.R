@@ -283,58 +283,6 @@ summarize_population <- function(state, IFloci, population, genotype, igeneratio
 }
 
 
-parse_strain_amr_file <- function(filename, strain_column_name, amr_column_name, n_top, i_year){
-
-  strain_data <- readr::read_delim(filename, delim=";")
-  strain_data <- strain_data %>% dplyr::filter(year==2017)
-  
-  strain_data$CC131_clades[is.na(strain_data$CC131_clades)] <- "" 
-  strain_data$subglades <- paste0(strain_data$ST, strain_data$CC131_clades)
-  strain_data$subglades[strain_data$subglades == "131A"] <- "131_A"
-  strain_data$subglades[strain_data$subglades == "131B"] <- "131_B"
-  strain_data$subglades[strain_data$subglades == "131C1"] <- "131_C"
-  strain_data$subglades[strain_data$subglades == "131C2"] <- "131_C"
-  strain_column_name <- "subglades"
-
-  strain_table <- table(strain_data[strain_column_name])
-  
-  strain_sorted_tmp <- sort.int(strain_table, decreasing = TRUE, index.return= TRUE)
-  strain_sorted <- strain_sorted_tmp$x
-  sorted_index <- strain_sorted_tmp$ix
-  
-  n_top_strains <- strain_sorted[1:n_top]
-  n_top_strain_names <- names(n_top_strains)
-
-  other_strains <- strain_sorted[(n_top+1):length(strain_sorted)]
-  other_strains_total <- sum(other_strains)
-  other_strain_names <- names(other_strains)
-  n_top_strains['STX'] <- other_strains_total
-
-  strain_table_freq <- n_top_strains / sum(n_top_strains)
-
-  strain_amr <- strain_data %>% 
-    dplyr::select(amr_column_name) %>% 
-    mutate_all(~ replace(., . == "CTX-M", 1)) %>% 
-    mutate_all(~ replace(., is.na(.), 0)) %>%
-    tibble::deframe()
-
-  strains <- strain_data[,strain_column_name] %>% tibble::deframe()
-
-  amr_table <- table(strains, strain_amr)
-
-  amr_table_top <- amr_table[n_top_strain_names,]
-
-  amr_table_other <- amr_table[(row.names(amr_table) %in% other_strain_names),]
-
-  amr_table_other_amr <- colSums(amr_table_other)
-  amr_table_top <- rbind(amr_table_top, amr_table_other_amr)
-  
-  rownames(amr_table_top)[n_top+1] <- "STX"
-  amr_table_top <- amr_table_top / rowSums(amr_table_top)
-  
-  return(list(strains=strain_table_freq, amr=amr_table_top))
-}
-
 ###########
 
 evolve_generation <- function(state,
