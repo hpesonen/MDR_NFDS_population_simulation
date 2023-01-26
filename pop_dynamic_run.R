@@ -256,10 +256,10 @@ study_parse_strain_amr_file <- function(filename, strain_column_name, amr_column
 
 summarize_population <- function(state, IFloci, population, genotype, igeneration, irepetition, ab_pressure){
   summary_table_genotype_empty <- tidyr::expand_grid(population,genotype)
-  pop_count             <- state %>% dplyr::group_by(population)  %>% dplyr::tally() %>% dplyr::ungroup()
-  pop_and_genotype_count   <- state %>% dplyr::group_by(population, genotype)  %>% dplyr::tally() %>% dplyr::ungroup()
+  pop_count <- state %>% dplyr::group_by(population)  %>% dplyr::tally() %>% dplyr::ungroup()
+  pop_and_genotype_count <- state %>% dplyr::group_by(population, genotype)  %>% dplyr::tally() %>% dplyr::ungroup()
 
-    pop_ab_prop           <- state %>% dplyr::group_by(population) %>% dplyr::summarize_at(IFloci, mean) %>% dplyr::ungroup()
+    pop_ab_prop <- state %>% dplyr::group_by(population) %>% dplyr::summarize_at(IFloci, mean) %>% dplyr::ungroup()
     pop_and_genotype_ab_prop <- state %>% dplyr::group_by(population, genotype) %>% dplyr::summarize_at(IFloci, mean) %>% dplyr::ungroup()
 
   summary_table_genotype <- pop_and_genotype_count %>%
